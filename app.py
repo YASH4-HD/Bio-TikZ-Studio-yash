@@ -63,34 +63,55 @@ with tab1:
                 )
 
 # --- TAB 2: OVERLEAF TIKZ GENERATOR ---
-with tab2:
-    st.header("Quick TikZ Code Generator")
-    st.write("Generate clean code for biological nodes to paste into Overleaf.")
-    
-    c1, c2, c3 = st.columns(3)
-    
-    with c1:
-        cell_label = st.text_input("Cell Label", "Macrophage")
-        cell_color = st.color_picker("Cell Color", "#e74c3c")
-    with c2:
-        shape = st.selectbox("Shape", ["circle", "ellipse", "octagon"])
-        line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"])
-    with c3:
-        show_shadow = st.checkbox("Add Shadow", value=True)
+    # --- TAB 2: OVERLEAF TIKZ GENERATOR ---
+    with tab2:
+        st.header("Quick TikZ Code Generator")
+        st.write("Generate clean code for biological nodes to paste into Overleaf.")
 
-    # Generate the Snippet
-    shadow_code = ", drop shadow" if show_shadow else ""
-    
-    tikz_code = f"""
+        c1, c2, c3 = st.columns(3)
+        
+        with c1:
+            cell_label = st.text_input("Cell Label", "Macrophage")
+            # Using a default color that looks good for cells
+            cell_color = st.color_picker("Cell Color", "#e74c3c")
+        
+        with c2:
+            shape = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
+            line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"])
+
+        with c3:
+            show_shadow = st.checkbox("Add Shadow", value=True)
+            # This preset helps adjust sizes automatically
+            preset = st.selectbox("Style Preset", ["Standard Cell", "Receptor", "Nucleus"])
+
+        # Logic to handle presets
+        if preset == "Receptor":
+            min_size = "minimum width=1.0cm, minimum height=0.4cm"
+            shape = "rectangle" # Receptors are usually rectangular
+        elif preset == "Nucleus":
+            min_size = "minimum size=1.5cm"
+            shape = "circle"
+        else:
+            min_size = "minimum size=2.5cm"
+
+        shadow_code = ", drop shadow" if show_shadow else ""
+
+        # The Generated Snippet - Fixed syntax for Overleaf
+        tikz_code = f"""
 % Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
 
 \\begin{{tikzpicture}}
     \\node[{shape}, draw, fill={cell_color}!20, 
           line width={line_thickness}, 
-          minimum size=2.5cm, 
+          {min_size},
           align=center{shadow_code}] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
-    """
+"""
+        st.subheader("Copy this code to Overleaf:")
+        st.code(tikz_code, language="latex")
+        
+        st.info("💡 Pro-tip: After pasting in Overleaf, use Tab 1 to convert your PDF to a High-Res PNG!")
+
     
     st.subheader("Copy this code to Overleaf:")
     st.code(tikz_code, language="latex")
