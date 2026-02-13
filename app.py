@@ -62,7 +62,6 @@ with tab1:
                     key=f"btn_{page_num}"
                 )
 
-# --- TAB 2: OVERLEAF TIKZ GENERATOR ---
     # --- TAB 2: OVERLEAF TIKZ GENERATOR ---
     with tab2:
         st.header("Quick TikZ Code Generator")
@@ -76,33 +75,34 @@ with tab1:
             cell_color = st.color_picker("Cell Color", "#e74c3c")
         
         with c2:
-            shape = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
-            line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"])
+            shape_option = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
+            line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"], value="thick")
 
         with c3:
             show_shadow = st.checkbox("Add Shadow", value=True)
             # This preset helps adjust sizes automatically
             preset = st.selectbox("Style Preset", ["Standard Cell", "Receptor", "Nucleus"])
 
-        # Logic to handle presets
+        # --- LOGIC TO HANDLE PRESETS ---
         if preset == "Receptor":
             min_size = "minimum width=1.0cm, minimum height=0.4cm"
-            shape = "rectangle" # Receptors are usually rectangular
+            final_shape = "rectangle" # Receptors are usually rectangular
         elif preset == "Nucleus":
             min_size = "minimum size=1.5cm"
-            shape = "circle"
+            final_shape = "circle"
         else:
             min_size = "minimum size=2.5cm"
+            final_shape = shape_option
 
         shadow_code = ", drop shadow" if show_shadow else ""
 
-        # The Generated Snippet - Fixed syntax for Overleaf
-               # The Corrected Generated Snippet
+        # --- THE GENERATED SNIPPET ---
+        # Using triple braces {{{ }}} to ensure LaTeX gets { } and Python gets the variable
         tikz_code = f"""
 % Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
 
 \\begin{{tikzpicture}}
-    \\node[{shape}, draw, fill={cell_color}!20, 
+    \\node[{final_shape}, draw, fill={cell_color.replace('#', '')}!20, 
           line width={line_thickness}, 
           {min_size},
           align=center{shadow_code}] (mycell) at (0,0) {{{cell_label}}};
@@ -113,10 +113,6 @@ with tab1:
         st.code(tikz_code, language="latex")
         
         st.info("💡 Pro-tip: After pasting in Overleaf, use Tab 1 to convert your PDF to a High-Res PNG!")
-
-    
-    st.subheader("Copy this code to Overleaf:")
-    st.code(tikz_code, language="latex")
 
 st.markdown("---")
 st.caption("Developed by Yashwant Nama | PhD Research Portfolio Project")
