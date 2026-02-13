@@ -97,6 +97,7 @@ with tab1:
         shadow_code = ", drop shadow" if show_shadow else ""
 
         # The Generated Snippet - Fixed syntax for Overleaf
+               # The Corrected Generated Snippet
         tikz_code = f"""
 % Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
 
@@ -107,6 +108,7 @@ with tab1:
           align=center{shadow_code}] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
 """
+
         st.subheader("Copy this code to Overleaf:")
         st.code(tikz_code, language="latex")
         
