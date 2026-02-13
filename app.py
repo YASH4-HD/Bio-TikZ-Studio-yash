@@ -1,10 +1,10 @@
 import streamlit as st
 import fitz  # PyMuPDF
-from PIL import Image
+from PIL import Image, ImageChops
 import io
 
 # Page Configuration
-st.set_page_config(page_title="BioRender-to-LaTeX Tool", page_icon="🧬", layout="wide")
+st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
 
 st.title("🔬 Researcher's Visualization Suite")
 st.markdown("---")
@@ -35,20 +35,16 @@ with tab1:
                 
                 # Apply high-res scaling
                 mat = fitz.Matrix(dpi_scale, dpi_scale)
-                
+                pix = page.get_pixmap(matrix=mat, alpha=False)
+                img = Image.open(io.BytesIO(pix.tobytes("png")))
+
                 if auto_crop:
-                    # Calculate the actual content area (the bounding box)
-                    pix = page.get_pixmap(matrix=mat, alpha=False)
-                    img = Image.open(io.BytesIO(pix.tobytes("png")))
-                    # Use PIL's bbox to crop white space
+                    # Calculate the actual content area
                     bg = Image.new(img.mode, img.size, img.getpixel((0,0)))
-                    diff = Image.chops.difference(img, bg)
+                    diff = ImageChops.difference(img, bg)
                     bbox = diff.getbbox()
                     if bbox:
                         img = img.crop(bbox)
-                else:
-                    pix = page.get_pixmap(matrix=mat)
-                    img = Image.open(io.BytesIO(pix.tobytes("png")))
                 
                 # Display and Download
                 st.image(img, caption=f"Page {page_num + 1} - Processed", use_container_width=True)
@@ -62,7 +58,8 @@ with tab1:
                     label=f"💾 Download High-Res Page {page_num + 1}",
                     data=byte_im,
                     file_name=f"Figure_Output_DPI{dpi_scale*72}.png",
-                    mime="image/png"
+                    mime="image/png",
+                    key=f"btn_{page_num}"
                 )
 
 # --- TAB 2: OVERLEAF TIKZ GENERATOR ---
@@ -97,7 +94,6 @@ with tab2:
     
     st.subheader("Copy this code to Overleaf:")
     st.code(tikz_code, language="latex")
-    st.info("💡 Tip: Use this for quick flowchart nodes or cell diagrams.")
 
 st.markdown("---")
 st.caption("Developed by Yashwant Nama | PhD Research Portfolio Project")
