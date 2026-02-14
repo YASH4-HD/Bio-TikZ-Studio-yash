@@ -7,9 +7,13 @@ from pathlib import Path
 import fitz  # PyMuPDF
 import streamlit as st
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageOps
-from PIL import Image, ImageOps
+
+# 1. Disable safety limit immediately
 Image.MAX_IMAGE_PIXELS = None
+
+# 2. Set config before any other st commands
 st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
+
 
 OUTPUT_PROFILES = {
     "Custom": {"dpi_scale": 4, "auto_crop": True, "line_thickness": "thick"},
