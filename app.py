@@ -329,7 +329,7 @@ with main_tabs[1]:
 
 \\begin{{document}}
 
-{tikz_body}
+{tikz_code}
 
 \\end{{document}}"""
     else:
