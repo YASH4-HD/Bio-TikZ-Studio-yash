@@ -7,7 +7,8 @@ from pathlib import Path
 import fitz  # PyMuPDF
 import streamlit as st
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageOps
-
+# Increase the limit to allow larger figures (e.g., 250 megapixels)
+Image.MAX_IMAGE_PIXELS = 250000000 
 st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
 
 OUTPUT_PROFILES = {
