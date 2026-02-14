@@ -259,8 +259,8 @@ with main_tabs[0]:
 with main_tabs[1]:
     st.header("TikZ Generator + Template Gallery + Legend Generator")
     st.write("Generate clean code for biological nodes to paste into Overleaf.")
-    # New Feature: Toggle for Beginners
-    full_doc_mode = st.toggle("🚀 Full Document Mode (For Beginners)", value=False, help="Enable this to get the complete code including preamble. Just paste into a blank Overleaf file!")
+    
+    
 
     template_choice = st.selectbox("Template Gallery", ["Custom Node"] + list(TIKZ_TEMPLATES.keys()))
 
