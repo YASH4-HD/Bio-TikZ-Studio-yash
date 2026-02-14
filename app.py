@@ -519,10 +519,24 @@ with main_tabs[3]:
 
         add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
 
-        images = [Image.open(f).convert("RGB") for f in panel_files]
+       add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
+
+        # --- REPLACE LINE 522 WITH THIS START ---
+        images = []
+        for f in panel_files:
+            img = Image.open(f).convert("RGB")
+            # Resize to 800px width while maintaining aspect ratio for the panel
+            aspect_ratio = img.height / img.width
+            new_height = int(800 * aspect_ratio)
+            img = img.resize((800, new_height))
+            images.append(img)
+        # --- REPLACE LINE 522 WITH THIS END ---
+
         composed = compose_panel(
             images=images,
             columns=columns,
+            # ... the rest of your code ...
+
             spacing=spacing,
             bg_color=bg_color,
             add_labels=add_labels,
