@@ -77,6 +77,42 @@ def build_zip(files: list[tuple[str, bytes]]) -> bytes:
     return zip_buffer.read()
 
 
+def generate_cell_tikz(
+    cell_label: str,
+    cell_shape: str,
+    cell_color: str,
+    line_thickness: str,
+    min_size: str,
+    show_shadow: bool,
+) -> str:
+    # Prepare the label for LaTeX (handles newlines)
+    label_to_print = cell_label.replace("\\n", "\\\\").replace("\n", "\\\\")
+
+    # Logic for shadow
+    shadow_part = ", drop shadow" if show_shadow else ""
+
+    # Logic for shape
+    shape_map = {
+        "circle": "circle",
+        "ellipse": "ellipse",
+        "rectangle": "rectangle",
+        "double circle": "circle, double",
+    }
+    final_shape = shape_map.get(cell_shape, "circle")
+
+    return f"""\\begin{{tikzpicture}}
+\\node [
+    {final_shape},
+    draw,
+    fill=mycolor!20,
+    {line_thickness},
+    {min_size},
+    inner sep=5pt,
+    align=center{shadow_part}
+] (mycell) at (0,0) {{{label_to_print}}};
+\\end{{tikzpicture}}"""
+
+
 def generate_tikz_code(
     cell_label: str,
     cell_color: str,
@@ -96,22 +132,15 @@ def generate_tikz_code(
         final_shape = shape_option
 
     hex_color = cell_color.replace("#", "")
-    shadow_code = ", drop shadow" if show_shadow else ""
-    # 1. Prepare the label (handles \n correctly)
-    label_to_print = cell_label.replace('\\n', '\\\\').replace('\n', '\\\\')
-
-    # 2. Return the formatted TikZ code
-    return f"""\\begin{{tikzpicture}}
-\\node [
-    {final_shape}, 
-    draw, 
-    fill={{[HTML]{{{hex_color}}}!20}}, 
-    {line_thickness},          
-    {min_size},
-    inner sep=5pt,
-    align=center{shadow_code}
-] (mycell) at (0,0) {{{label_to_print}}};
-\\end{{tikzpicture}}"""
+    tikz_body = generate_cell_tikz(
+        cell_label=cell_label,
+        cell_shape=final_shape,
+        cell_color=cell_color,
+        line_thickness=line_thickness,
+        min_size=min_size,
+        show_shadow=show_shadow,
+    )
+    return f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{hex_color}}}\n\n{tikz_body}"
 
 
 def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
@@ -122,12 +151,13 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         label = item["label"]
         shape = item["shape"]
         lines.append(
-            f"\\node[{shape}, draw, fill={color}!25, minimum size=0.45cm] at (0,{y}) {{}};"
+            f"\node[{shape}, draw, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};"
         )
-        lines.append(f"\\node[{shape}, draw, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};")
+        lines.append(f"\node[anchor=west] at (0.6,{y}) {{{label}}};")
         y -= 0.8
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
+
 def build_full_tikz_document(tikz_body: str) -> str:
     return rf"""\documentclass[tikz,border=5pt]{{standalone}}
 \usepackage[svgnames]{{xcolor}}
@@ -273,7 +303,7 @@ with main_tabs[1]:
         cell_label = st.text_input("Cell Label", "Macrophage")
         cell_color = st.color_picker("Cell Color", "#e74c3c")
     with c2:
-        shape_option = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
+        shape_option = st.selectbox("Shape", ["circle", "ellipse", "rectangle", "double circle"])
         line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"], value="thick")
     with c3:
         show_shadow = st.checkbox("Add Shadow", value=True)
@@ -288,9 +318,8 @@ with main_tabs[1]:
         preset=preset,
     )
     full_doc_mode = st.toggle("Generate full .tex document", value=False)
-    final_output = build_full_tikz_document(tikz_code) if full_doc_mode else tikz_code
-    # --- FULL DOCUMENT GENERATION ---
     current_hex = cell_color.replace("#", "")
+    tikz_body = tikz_code.split("\n\n", 1)[1] if tikz_code.startswith("% Add this to your preamble:") else tikz_code
     if full_doc_mode:
         final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
 \\usetikzlibrary{{shapes.geometric, shadows}}
@@ -300,12 +329,11 @@ with main_tabs[1]:
 
 \\begin{{document}}
 
-{tikz_code}
+{tikz_body}
 
 \\end{{document}}"""
     else:
-        
-        final_output = f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}\n\n" + tikz_code
+        final_output = tikz_code
     st.subheader("Generated Node Code")
     st.code(final_output, language="latex")
     st.download_button(
@@ -314,8 +342,6 @@ with main_tabs[1]:
         file_name="cell_diagram.tex",
         mime="text/x-tex",
      )
-    st.code(tikz_code, language="latex")
-
     st.markdown("### Smart Legend Generator")
     n_items = st.slider("Number of legend items", 2, 8, 4)
     legend_items = []
