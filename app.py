@@ -1,93 +1,93 @@
-import streamlit as st
-import fitz  # PyMuPDF
-from PIL import Image, ImageChops
 import io
+import json
+import zipfile
+from datetime import datetime
+from pathlib import Path
 
-# Page Configuration
+import fitz  # PyMuPDF
+import streamlit as st
+from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageOps
+
 st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
 
-st.title("🔬 Researcher's Visualization Suite")
-st.markdown("---")
+OUTPUT_PROFILES = {
+    "Custom": {"dpi_scale": 4, "auto_crop": True, "line_thickness": "thick"},
+    "Nature Journal": {"dpi_scale": 6, "auto_crop": True, "line_thickness": "thin"},
+    "Conference Poster": {"dpi_scale": 4, "auto_crop": True, "line_thickness": "ultra thick"},
+    "Grant/Investor Deck": {"dpi_scale": 3, "auto_crop": True, "line_thickness": "thick"},
+}
 
-# Create Tabs for the two features
-tab1, tab2 = st.tabs(["🖼️ High-Res PNG Converter (with Auto-Crop)", "📝 Overleaf TikZ Generator"])
+TIKZ_TEMPLATES = {
+    "Cell Signaling": r"""\begin{tikzpicture}
+\node[circle, draw, fill=blue!15, minimum size=2.2cm] (cell) at (0,0) {Cell};
+\node[rectangle, draw, fill=green!20, minimum width=1.5cm, minimum height=0.6cm] (rec) at (0,1.8) {Receptor};
+\draw[->, thick] (rec) -- (cell);
+\end{tikzpicture}""",
+    "Immune Synapse": r"""\begin{tikzpicture}
+\node[circle, draw, fill=red!15, minimum size=2cm] (tcell) at (-1.8,0) {T Cell};
+\node[circle, draw, fill=orange!15, minimum size=2cm] (apc) at (1.8,0) {APC};
+\draw[ultra thick, <->] (-0.8,0) -- (0.8,0) node[midway, above] {Synapse};
+\end{tikzpicture}""",
+    "CRISPR Workflow": r"""\begin{tikzpicture}
+\node[rectangle, draw, fill=purple!15, minimum width=2cm, minimum height=0.8cm] (gRNA) at (0,1.5) {gRNA};
+\node[rectangle, draw, fill=purple!25, minimum width=2cm, minimum height=0.8cm] (cas9) at (0,0) {Cas9};
+\node[rectangle, draw, fill=gray!20, minimum width=2.5cm, minimum height=0.8cm] (dna) at (0,-1.5) {Target DNA};
+\draw[->, thick] (gRNA) -- (cas9);
+\draw[->, thick] (cas9) -- (dna);
+\end{tikzpicture}""",
+}
 
-# --- TAB 1: PDF TO PNG CONVERTER ---
-with tab1:
-    st.header("Convert PDF Figures to Journal-Quality PNG")
-    
-    col1, col2 = st.columns([1, 3])
-    
-    with col1:
-        st.subheader("Settings")
-        dpi_scale = st.slider("Resolution (Scaling)", 1, 8, 4, help="4 = 300 DPI, 6 = 600 DPI")
-        auto_crop = st.checkbox("Auto-Crop White Margins", value=True)
-        
-    with col2:
-        uploaded_file = st.file_uploader("Upload your Figure PDF from Overleaf", type=["pdf"])
-        
-        if uploaded_file is not None:
-            pdf_bytes = uploaded_file.read()
-            doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-            
-            for page_num in range(len(doc)):
-                page = doc.load_page(page_num)
-                
-                # Apply high-res scaling
-                mat = fitz.Matrix(dpi_scale, dpi_scale)
-                pix = page.get_pixmap(matrix=mat, alpha=False)
-                img = Image.open(io.BytesIO(pix.tobytes("png")))
 
-                if auto_crop:
-                    # Calculate the actual content area
-                    bg = Image.new(img.mode, img.size, img.getpixel((0,0)))
-                    diff = ImageChops.difference(img, bg)
-                    bbox = diff.getbbox()
-                    if bbox:
-                        img = img.crop(bbox)
-                
-                # Display and Download
-                st.image(img, caption=f"Page {page_num + 1} - Processed", use_container_width=True)
-                
-                # Prepare buffer for download
-                buf = io.BytesIO()
-                img.save(buf, format="PNG")
-                byte_im = buf.getvalue()
-                
-                st.download_button(
-                    label=f"💾 Download High-Res Page {page_num + 1}",
-                    data=byte_im,
-                    file_name=f"Figure_Output_DPI{dpi_scale*72}.png",
-                    mime="image/png",
-                    key=f"btn_{page_num}"
-                )
+def convert_pdf_page_to_image(page: fitz.Page, dpi_scale: int, auto_crop: bool) -> Image.Image:
+    mat = fitz.Matrix(dpi_scale, dpi_scale)
+    pix = page.get_pixmap(matrix=mat, alpha=False)
+    img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
 
-# --- TAB 2: OVERLEAF TIKZ GENERATOR ---
-with tab2:
-    st.header("Quick TikZ Code Generator")
-    st.write("Generate clean code for biological nodes to paste into Overleaf.")
+    if auto_crop:
+        bg = Image.new(img.mode, img.size, img.getpixel((0, 0)))
+        diff = ImageChops.difference(img, bg)
+        bbox = diff.getbbox()
+        if bbox:
+            img = img.crop(bbox)
 
-    # New Feature: Toggle for Beginners
-    full_doc_mode = st.toggle("🚀 Full Document Mode (For Beginners)", value=False, help="Enable this to get the complete code including preamble. Just paste into a blank Overleaf file!")
+    return img
 
-    c1, c2, c3 = st.columns(3)
-    
-    with c1:
-        cell_label = st.text_input("Cell Label", "Macrophage")
-        cell_color = st.color_picker("Cell Color", "#e74c3c")
-    
-    with c2:
-        shape_option = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
-        line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"], value="thick")
 
-    with c3:
-        show_shadow = st.checkbox("Add Shadow", value=True)
-        preset = st.selectbox("Style Preset", ["Standard Cell", "Receptor", "Nucleus"])
+def convert_pdf_bytes_to_images(pdf_bytes: bytes, dpi_scale: int, auto_crop: bool) -> list[Image.Image]:
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    images = []
+    for page_num in range(len(doc)):
+        page = doc.load_page(page_num)
+        images.append(convert_pdf_page_to_image(page=page, dpi_scale=dpi_scale, auto_crop=auto_crop))
+    return images
 
-    # --- LOGIC TO HANDLE PRESETS ---
+
+def image_to_png_bytes(img: Image.Image) -> bytes:
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def build_zip(files: list[tuple[str, bytes]]) -> bytes:
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for filename, payload in files:
+            zf.writestr(filename, payload)
+    zip_buffer.seek(0)
+    return zip_buffer.read()
+
+
+def generate_tikz_code(
+    cell_label: str,
+    cell_color: str,
+    shape_option: str,
+    line_thickness: str,
+    show_shadow: bool,
+    preset: str,
+) -> str:
     if preset == "Receptor":
         min_size = "minimum width=1.0cm, minimum height=0.4cm"
-        final_shape = "rectangle" 
+        final_shape = "rectangle"
     elif preset == "Nucleus":
         min_size = "minimum size=1.5cm"
         final_shape = "circle"
@@ -95,45 +95,380 @@ with tab2:
         min_size = "minimum size=2.5cm"
         final_shape = shape_option
 
-    # Clean the color hex for LaTeX
-    hex_color = cell_color.replace('#', '')
-    
-    # Correct Shadow Logic (No trailing commas)
-    shadow_part = ", drop shadow" if show_shadow else ""
+    hex_color = cell_color.replace("#", "")
+    shadow_code = ", drop shadow" if show_shadow else ""
 
-    # --- TIKZ SNIPPET GENERATION ---
-    tikz_snippet = f"""\\begin{{tikzpicture}}
+    return f"""\\begin{{tikzpicture}}
     \\node [
-        {final_shape}, 
-        draw, 
-        fill={hex_color}!20, 
-        {line_thickness},          
+        {final_shape},
+        draw,
+        fill={hex_color}!20,
+        {line_thickness},
         {min_size},
-        align=center{shadow_part}
+        align=center{shadow_code}
     ] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}"""
 
-    # --- FULL DOCUMENT GENERATION ---
-    if full_doc_mode:
-        final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
-\\usetikzlibrary{{shapes.geometric, shadows}}
-\\usepackage{{xcolor}}
 
-\\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
+def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
+    lines = [r"\begin{tikzpicture}"]
+    y = 0
+    for item in legend_items:
+        color = item["color"].replace("#", "")
+        label = item["label"]
+        shape = item["shape"]
+        lines.append(
+            f"\\node[{shape}, draw, fill={color}!25, minimum size=0.45cm] at (0,{y}) {{}};"
+        )
+        lines.append(f"\\node[anchor=west] at (0.6,{y}) {{{label}}};")
+        y -= 0.8
+    lines.append(r"\end{tikzpicture}")
+    return "\n".join(lines)
 
-\\begin{{document}}
 
-{tikz_snippet}
+def grayscale_score(img: Image.Image) -> float:
+    gray = ImageOps.grayscale(img)
+    hist = gray.histogram()
+    total = sum(hist)
+    if total == 0:
+        return 0.0
+    low = sum(hist[:32]) / total
+    high = sum(hist[224:]) / total
+    mid = sum(hist[96:160]) / total
+    score = (high + low) * 100 - mid * 15
+    return max(0.0, min(100.0, round(score, 2)))
 
-\\end{{document}}"""
-    else:
-        final_output = f"% Add this to your preamble once:\n% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}\n\n" + tikz_snippet
 
-    st.subheader("Copy this code to Overleaf:")
-    st.code(final_output, language="latex")
-    
-    st.info("💡 Pro-tip: If you are new to LaTeX, turn on 'Full Document Mode' and paste everything into a new Overleaf file.")
-    st.info("💡 Pro-tip: After recompiling in Overleaf, download the PDF and use Tab 1 to get your high-res image!")
+def color_blind_preview(img: Image.Image) -> Image.Image:
+    # Lightweight deuteranopia-like approximation by reducing green channel influence.
+    r, g, b = img.split()
+    g_reduced = ImageEnhance.Brightness(g).enhance(0.35)
+    return Image.merge("RGB", (r, g_reduced, b))
+
+
+def compose_panel(
+    images: list[Image.Image], columns: int, spacing: int, bg_color: str, add_labels: bool, label_color: str
+) -> Image.Image:
+    widths = [im.width for im in images]
+    heights = [im.height for im in images]
+    cell_w = max(widths)
+    cell_h = max(heights)
+
+    rows = (len(images) + columns - 1) // columns
+    canvas_w = columns * cell_w + (columns + 1) * spacing
+    canvas_h = rows * cell_h + (rows + 1) * spacing
+
+    canvas = Image.new("RGB", (canvas_w, canvas_h), bg_color)
+    draw = ImageDraw.Draw(canvas)
+
+    for idx, img in enumerate(images):
+        row = idx // columns
+        col = idx % columns
+        x = spacing + col * (cell_w + spacing)
+        y = spacing + row * (cell_h + spacing)
+        canvas.paste(img, (x, y))
+        if add_labels:
+            label = chr(65 + idx)
+            draw.text((x + 10, y + 10), label, fill=label_color)
+
+    return canvas
+
+
+def build_project_payload(state: dict) -> str:
+    return json.dumps(state, indent=2)
+
+
+def load_project_payload(uploaded_project) -> dict:
+    return json.loads(uploaded_project.read().decode("utf-8"))
+
+
+st.title("🔬 Bio-TikZ Studio | End-to-End Figure Production")
+st.caption("Phase 1 + 2 + 3 features: conversion, design, accessibility, composition, packaging, and workflow automation")
+st.markdown("---")
+
+main_tabs = st.tabs(
+    [
+        "🖼️ Converter Lab",
+        "🧬 TikZ + Template Studio",
+        "🧪 Accessibility + Reviewer Mode",
+        "🧩 Panel Composer",
+        "📦 Workspace + Export Pack",
+        "🏆 Design Strategy",
+    ]
+)
+
+with main_tabs[0]:
+    st.header("Batch PDF Converter + Journal Presets")
+
+    preset = st.selectbox("Output Profile", list(OUTPUT_PROFILES.keys()))
+    default_profile = OUTPUT_PROFILES[preset]
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        dpi_scale = st.slider("Resolution Scale", 1, 8, default_profile["dpi_scale"])
+    with c2:
+        auto_crop = st.checkbox("Auto-Crop White Margins", value=default_profile["auto_crop"])
+    with c3:
+        batch_mode = st.checkbox("Enable Batch ZIP Export", value=True)
+
+    uploaded_pdfs = st.file_uploader(
+        "Upload one or many PDF figures", type=["pdf"], accept_multiple_files=True
+    )
+
+    if uploaded_pdfs:
+        zip_entries: list[tuple[str, bytes]] = []
+        st.subheader("Processed Pages")
+
+        for pdf in uploaded_pdfs:
+            pdf_images = convert_pdf_bytes_to_images(pdf.read(), dpi_scale=dpi_scale, auto_crop=auto_crop)
+            pdf_stem = Path(pdf.name).stem
+            st.markdown(f"**{pdf.name}**")
+
+            for page_idx, page_img in enumerate(pdf_images, start=1):
+                st.image(page_img, caption=f"{pdf_stem} | Page {page_idx}", use_container_width=True)
+                filename = f"{pdf_stem}_DPI{dpi_scale * 72}_Page{page_idx}.png"
+                png_bytes = image_to_png_bytes(page_img)
+                st.download_button(
+                    label=f"Download {filename}",
+                    data=png_bytes,
+                    file_name=filename,
+                    mime="image/png",
+                    key=f"single_{pdf_stem}_{page_idx}",
+                )
+                zip_entries.append((filename, png_bytes))
+
+        if batch_mode and zip_entries:
+            zip_blob = build_zip(zip_entries)
+            st.download_button(
+                "⬇️ Download Complete Batch (ZIP)",
+                data=zip_blob,
+                file_name=f"bio_tikz_batch_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip",
+                mime="application/zip",
+            )
+
+with main_tabs[1]:
+    st.header("TikZ Generator + Template Gallery + Legend Generator")
+
+    template_choice = st.selectbox("Template Gallery", ["Custom Node"] + list(TIKZ_TEMPLATES.keys()))
+
+    if template_choice != "Custom Node":
+        st.subheader("Template Preview Code")
+        st.code(TIKZ_TEMPLATES[template_choice], language="latex")
+
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        cell_label = st.text_input("Cell Label", "Macrophage")
+        cell_color = st.color_picker("Cell Color", "#e74c3c")
+    with c2:
+        shape_option = st.selectbox("Shape", ["circle", "ellipse", "octagon", "rectangle"])
+        line_thickness = st.select_slider("Line Thickness", ["thin", "thick", "ultra thick"], value="thick")
+    with c3:
+        show_shadow = st.checkbox("Add Shadow", value=True)
+        preset = st.selectbox("Style Preset", ["Standard Cell", "Receptor", "Nucleus"])
+
+    tikz_code = generate_tikz_code(
+        cell_label=cell_label,
+        cell_color=cell_color,
+        shape_option=shape_option,
+        line_thickness=line_thickness,
+        show_shadow=show_shadow,
+        preset=preset,
+    )
+
+    st.subheader("Generated Node Code")
+    st.code(tikz_code, language="latex")
+
+    st.markdown("### Smart Legend Generator")
+    n_items = st.slider("Number of legend items", 2, 8, 4)
+    legend_items = []
+    for i in range(n_items):
+        l1, l2, l3 = st.columns([2, 1, 1])
+        with l1:
+            label = st.text_input(f"Item {i + 1} Label", value=f"Entity {i + 1}", key=f"legend_label_{i}")
+        with l2:
+            color = st.color_picker("Color", value="#4a90e2", key=f"legend_color_{i}")
+        with l3:
+            shape = st.selectbox("Shape", ["circle", "rectangle", "ellipse"], key=f"legend_shape_{i}")
+        legend_items.append({"label": label, "color": color, "shape": shape})
+
+    legend_code = generate_legend_tikz(legend_items)
+    st.code(legend_code, language="latex")
+
+with main_tabs[2]:
+    st.header("Accessibility Validator + Reviewer-Ready Export")
+    uploaded_image = st.file_uploader("Upload PNG/JPG for accessibility check", type=["png", "jpg", "jpeg"])
+
+    if uploaded_image is not None:
+        base_img = Image.open(uploaded_image).convert("RGB")
+        gray_img = ImageOps.grayscale(base_img)
+        cb_img = color_blind_preview(base_img)
+
+        score = grayscale_score(base_img)
+        st.metric("Grayscale Resilience Score", f"{score}/100")
+
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            st.image(base_img, caption="Original", use_container_width=True)
+        with c2:
+            st.image(gray_img, caption="Grayscale Preview", use_container_width=True)
+        with c3:
+            st.image(cb_img, caption="Color-Blind Approximation", use_container_width=True)
+
+        reviewer_files = [
+            ("figure_original.png", image_to_png_bytes(base_img)),
+            ("figure_grayscale.png", image_to_png_bytes(gray_img.convert("RGB"))),
+            ("figure_colorblind_preview.png", image_to_png_bytes(cb_img)),
+            (
+                "reviewer_notes.md",
+                (
+                    "# Reviewer Export Notes\n"
+                    f"- Grayscale resilience score: {score}/100\n"
+                    "- Included original, grayscale, and color-blind preview exports.\n"
+                    "- Suggested check: verify labels remain legible at print scale.\n"
+                ).encode("utf-8"),
+            ),
+        ]
+        reviewer_zip = build_zip(reviewer_files)
+        st.download_button(
+            "📚 Download Reviewer Package (ZIP)",
+            data=reviewer_zip,
+            file_name="reviewer_ready_package.zip",
+            mime="application/zip",
+        )
+
+with main_tabs[3]:
+    st.header("Panel Composer (A/B/C/D figure assembly)")
+    panel_files = st.file_uploader(
+        "Upload processed PNG/JPG panel images", type=["png", "jpg", "jpeg"], accept_multiple_files=True
+    )
+
+    if panel_files:
+        p1, p2, p3, p4 = st.columns(4)
+        with p1:
+            columns = st.slider("Columns", 1, 4, 2)
+        with p2:
+            spacing = st.slider("Spacing", 0, 80, 20)
+        with p3:
+            bg_color = st.color_picker("Background", "#ffffff")
+        with p4:
+            label_color = st.color_picker("Label Color", "#000000")
+
+        add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
+
+        images = [Image.open(f).convert("RGB") for f in panel_files]
+        composed = compose_panel(
+            images=images,
+            columns=columns,
+            spacing=spacing,
+            bg_color=bg_color,
+            add_labels=add_labels,
+            label_color=label_color,
+        )
+
+        st.image(composed, caption="Composed Panel Figure", use_container_width=True)
+        st.download_button(
+            "⬇️ Download Composed Panel",
+            data=image_to_png_bytes(composed),
+            file_name="composed_panel.png",
+            mime="image/png",
+        )
+
+with main_tabs[4]:
+    st.header("Project Workspace + Overleaf Export Bundle")
+
+    st.subheader("Save/Load Workspace State")
+    workspace_payload = {
+        "profile": OUTPUT_PROFILES,
+        "timestamp": datetime.now().isoformat(),
+        "note": "Bio-TikZ Studio project state",
+    }
+
+    st.download_button(
+        "💾 Save Workspace (.json)",
+        data=build_project_payload(workspace_payload),
+        file_name="bio_tikz_workspace.json",
+        mime="application/json",
+    )
+
+    uploaded_workspace = st.file_uploader("Load Workspace JSON", type=["json"])
+    if uploaded_workspace is not None:
+        loaded = load_project_payload(uploaded_workspace)
+        st.success("Workspace loaded")
+        st.json(loaded)
+
+    st.subheader("Overleaf Helper Pack")
+    overleaf_preamble = r"""% Add to preamble once
+\usepackage{tikz}
+\usetikzlibrary{shadows,arrows.meta,positioning}
+"""
+    overleaf_pack = build_zip(
+        [
+            ("README_Overleaf.md", b"Import snippets from this pack into Overleaf."),
+            ("preamble_snippet.tex", overleaf_preamble.encode("utf-8")),
+            ("sample_node.tex", generate_tikz_code("Macrophage", "#e74c3c", "circle", "thick", True, "Standard Cell").encode("utf-8")),
+            ("sample_legend.tex", generate_legend_tikz([{"label": "Cell", "color": "#e74c3c", "shape": "circle"}]).encode("utf-8")),
+        ]
+    )
+    st.download_button(
+        "📦 Download Overleaf Helper Pack (ZIP)",
+        data=overleaf_pack,
+        file_name="overleaf_helper_pack.zip",
+        mime="application/zip",
+    )
+
+with main_tabs[5]:
+    st.header("Award-Winning Design Strategy Board")
+    audience = st.selectbox(
+        "Target Context",
+        ["Nature/Science-style journal figure", "Conference poster", "Investor or grant presentation"],
+    )
+    narrative_focus = st.multiselect(
+        "Narrative Priorities",
+        [
+            "Visual hierarchy",
+            "Color-blind safe palette",
+            "Minimal cognitive load",
+            "Strong biological storytelling",
+            "Icon consistency",
+            "Data-to-annotation balance",
+            "Publication typography consistency",
+            "One-claim-per-panel clarity",
+        ],
+        default=["Visual hierarchy", "Strong biological storytelling"],
+    )
+
+    st.markdown(
+        """
+- **Cinematic Layering:** Use foreground/midground/background depth with subtle opacity shifts.
+- **Semantic Color Tokens:** Assign one stable color family per entity class.
+- **Adaptive Label Density:** Keep concise labels in-figure and move detail to legends.
+- **Motion-Ready Composition:** Keep spacing and alignment grid-consistent for talks.
+- **Consistency Lock:** Reuse one palette + stroke system across all manuscript figures.
+"""
+    )
+
+    context_tip = {
+        "Nature/Science-style journal figure": "Prioritize grayscale resilience, axis cleanliness, and annotation precision.",
+        "Conference poster": "Maximize at-distance readability, larger type, and stronger contrast.",
+        "Investor or grant presentation": "Lead with novelty in <5 seconds using a single hero mechanism.",
+    }[audience]
+    st.success(context_tip)
+
+    design_brief = f"""# Award-Winning Figure Brief
+- Target context: {audience}
+- Narrative priorities: {', '.join(narrative_focus) if narrative_focus else 'Not selected'}
+- Recommended workflow:
+  1. Build layout in Panel Composer.
+  2. Create consistent symbols in TikZ + Legend Studio.
+  3. Validate accessibility and generate reviewer package.
+  4. Export helper pack for Overleaf integration.
+"""
+    st.download_button(
+        "📄 Download Design Brief (.md)",
+        data=design_brief,
+        file_name="award_winning_design_brief.md",
+        mime="text/markdown",
+    )
 
 st.markdown("---")
 st.caption("Developed by Yashwant Nama | PhD Research Portfolio Project")
