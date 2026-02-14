@@ -325,6 +325,7 @@ with main_tabs[1]:
 \\usetikzlibrary{{shapes.geometric, shadows}}
 \\usepackage{{xcolor}}
 
+
 \\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}
 
 \\begin{{document}}
