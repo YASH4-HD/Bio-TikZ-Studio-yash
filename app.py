@@ -513,7 +513,7 @@ with main_tabs[3]:
             label_color = st.color_picker("Label Color", "#000000")
 
         add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
-
+        Image.MAX_IMAGE_PIXELS = None
         images = [Image.open(f).convert("RGB") for f in panel_files]
         composed = compose_panel(
             images=images,
