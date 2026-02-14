@@ -172,7 +172,7 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         )
         # Draw the text label
         lines.append(f"\\node[anchor=west] at (0.6,{y}) {{{label}}};")
-        y -= 0.8
+        y = round(y - 0.8, 2)
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
 
