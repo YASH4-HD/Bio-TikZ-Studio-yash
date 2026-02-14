@@ -382,14 +382,17 @@ with main_tabs[1]:
     n_items = st.slider("Number of legend items", 2, 8, 4)
     legend_items = []
     for i in range(n_items):
-        l1, l2, l3 = st.columns([2, 1, 1])
+        l1, l2, l3, l4 = st.columns(4)
         with l1:
-            label = st.text_input(f"Item {i + 1} Label", value=f"Entity {i + 1}", key=f"legend_label_{i}")
+            label = st.text_input(f"Label {i+1}", f"Entity {i+1}", key=f"lab_{i}")
         with l2:
-            color = st.color_picker("Color", value="#4a90e2", key=f"legend_color_{i}")
+            color = st.color_picker(f"Color {i+1}", "#3498db", key=f"col_{i}")
         with l3:
-            shape = st.selectbox("Shape", ["circle", "rectangle", "ellipse"], key=f"legend_shape_{i}")
-        legend_items.append({"label": label, "color": color, "shape": shape})
+            shape = st.selectbox(f"Shape {i+1}", ["circle", "rectangle", "ellipse"], key=f"shp_{i}")
+        with l4:
+            l_style = st.selectbox(f"Style {i+1}", ["solid", "dashed", "dotted", "double"], key=f"sty_{i}")
+
+        legend_items.append({"label": label, "color": color, "shape": shape, "style": l_style})
 
     legend_code = generate_legend_tikz(legend_items)
     st.code(legend_code, language="latex")
