@@ -96,7 +96,7 @@ with tab1:
 
         shadow_code = ", drop shadow" if show_shadow else ""
 
-                # --- THE PERFECTED GENERATED SNIPPET ---
+               # --- THE PERFECTED GENERATED SNIPPET ---
         tikz_code = f"""
 % Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
 % Add this to your preamble: \\definecolor{{{cell_color.replace('#', '')}}}{{HTML}}{{{cell_color.replace('#', '')}}}
