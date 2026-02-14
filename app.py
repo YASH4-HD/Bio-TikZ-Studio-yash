@@ -381,6 +381,15 @@ with main_tabs[1]:
      )
     
     st.markdown("### Smart Legend Generator")
+    # --- PRESET LOGIC START ---
+    col_pre1, col_pre2 = st.columns([1, 2])
+    with col_pre1:
+        if st.button("🧬 Load Immunometabolism Preset"):
+            st.session_state.preset_labels = ["DAPI (Nucleus)", "CD8+ T-Cell", "Glucose Flux", "Mitochondria"]
+            st.session_state.preset_colors = ["#0000FF", "#FF0000", "#00FF00", "#FFA500"]
+            st.rerun()
+    # --- PRESET LOGIC END ---
+
     n_items = st.slider("Number of legend items", 2, 8, 4)
     legend_items = []
     for i in range(n_items):
