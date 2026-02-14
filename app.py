@@ -282,22 +282,22 @@ with main_tabs[1]:
         preset=preset,
     )
     # --- FULL DOCUMENT GENERATION ---
+    current_hex = cell_color.replace("#", "")
     if full_doc_mode:
         final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
 \\usetikzlibrary{{shapes.geometric, shadows}}
 \\usepackage{{xcolor}}
 
-\\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
+\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}
 
 \\begin{{document}}
 
-{tikz_snippet}
+{tikz_code}
 
 \\end{{document}}"""
     else:
-        clean_hex = cell_color.replace("#", "")
-        final_output = f"% Add this to your preamble once:\n\\definecolor{{mycolor}}{{HTML}}{{{clean_hex}}}\n\n" + tikz_code
-
+        
+        final_output = f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}\n\n" + tikz_code
     st.subheader("Generated Node Code")
     st.code(tikz_code, language="latex")
 
