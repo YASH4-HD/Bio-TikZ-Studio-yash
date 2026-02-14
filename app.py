@@ -244,7 +244,20 @@ with main_tabs[0]:
 
     c1, c2, c3 = st.columns(3)
     with c1:
-        dpi_scale = st.slider("Resolution Scale", 1, 8, default_profile["dpi_scale"])
+    # 1. Update slider to float for finer control
+    dpi_scale = st.slider("Resolution Scale (1.0 = 72 DPI)", 1.0, 12.0, float(default_profile["dpi_scale"]), step=0.5)
+    
+    # 2. Calculate the actual DPI (PDF base is 72)
+    calculated_dpi = int(dpi_scale * 72)
+    
+    # 3. Add the Validation Logic (Visual Feedback)
+    if calculated_dpi >= 300:
+        st.success(f"✅ **{calculated_dpi} DPI**: Journal Quality")
+    elif calculated_dpi >= 150:
+        st.info(f"💡 **{calculated_dpi} DPI**: Standard Web Quality")
+    else:
+        st.warning(f"⚠️ **{calculated_dpi} DPI**: Low Resolution (Draft)")
+
     with c2:
         auto_crop = st.checkbox("Auto-Crop White Margins", value=default_profile["auto_crop"])
     with c3:
