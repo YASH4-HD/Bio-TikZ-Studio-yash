@@ -459,6 +459,7 @@ with main_tabs[2]:
 
     if uploaded_image is not None:
         base_img = Image.open(uploaded_image).convert("RGB")
+        base_img = base_img.resize((1000, 1000))
         gray_img = ImageOps.grayscale(base_img)
         cb_img = color_blind_preview(base_img)
 
