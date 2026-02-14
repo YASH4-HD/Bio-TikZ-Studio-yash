@@ -159,6 +159,7 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
     return "\n".join(lines)
 
 def build_full_tikz_document(tikz_body: str) -> str:
+    # This matches your successful Overleaf preamble exactly
     return rf"""\documentclass[tikz,border=5pt]{{standalone}}
 \usepackage[svgnames]{{xcolor}}
 % Libraries required for biological curves and positioning
