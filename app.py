@@ -158,6 +158,7 @@ def generate_tikz_code(
 
 def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
     lines = [r"\begin{tikzpicture}"]
+    lines.append(r"\node at (0.3, 0.8) {\textbf{Legend Index}};")
     y = 0.0
     for item in legend_items:
         color = item["color"].replace("#", "")
