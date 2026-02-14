@@ -18,6 +18,19 @@ OUTPUT_PROFILES = {
 }
 
 TIKZ_TEMPLATES = {
+    "Mitochondria (Bezier)": r"""\begin{tikzpicture}
+% Outer membrane
+\draw[thick] (0,0) ellipse (4 and 2);
+% Inner membrane (cristae style)
+\draw[thick] (-3,0) 
+.. controls (-2.5,1) and (-1.5,1) .. (-1,0)
+.. controls (-0.5,-1) and (0.5,-1) .. (1,0)
+.. controls (1.5,1) and (2.5,1) .. (3,0);
+% Labels
+\node at (0,2.4) {\textbf{Outer Membrane}};
+\node at (0,-2.4) {\textbf{Inner Membrane}};
+\node at (0,0.8) {\textit{Matrix}};
+\end{tikzpicture}""",
     "Cell Signaling": r"""\begin{tikzpicture}
 \node[circle, draw, fill=blue!15, minimum size=2.2cm] (cell) at (0,0) {Cell};
 \node[rectangle, draw, fill=green!20, minimum width=1.5cm, minimum height=0.6cm] (rec) at (0,1.8) {Receptor};
