@@ -86,7 +86,7 @@ def generate_cell_tikz(
     show_shadow: bool,
 ) -> str:
     # Prepare the label for LaTeX (handles newlines)
-    label_to_print = cell_label.replace("\\n", "\\\\").replace("\n", "\\\\")
+    label_to_print = cell_label.replace('\\n', '\\\\ ').replace('\n', '\\\\ ')
 
     # Logic for shadow
     shadow_part = ", drop shadow" if show_shadow else ""
