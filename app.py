@@ -158,21 +158,23 @@ def generate_tikz_code(
 
 def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
     lines = [r"\begin{tikzpicture}"]
-    y = 0
+    y = 0.0
     for item in legend_items:
         color = item["color"].replace("#", "")
         label = item["label"]
         shape = item["shape"]
-        # NEW: Get the line style from the item
-        l_style = item.get("style", "solid") 
+        style = item["style"]
         
-        # Draw the shape icon
+        # Draw the shape icon with clean rounded coordinates
         lines.append(
-            f"\\node[{shape}, draw, {l_style}, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};"
+            f"\\node[{shape}, draw, {style}, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{round(y, 2)}) {{}};"
         )
         # Draw the text label
-        lines.append(f"\\node[anchor=west] at (0.6,{y}) {{{label}}};")
-        y = round(y - 0.8, 2)
+        lines.append(f"\\node[anchor=west] at (0.6,{round(y, 2)}) {{{label}}};")
+        
+        # Decrement y for the next row
+        y -= 0.8
+        
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
 
