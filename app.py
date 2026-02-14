@@ -101,10 +101,6 @@ with tab1:
 
         # --- THE FINAL PERFECTED GENERATED SNIPPET ---
         tikz_code = f"""
-% Add these to your preamble (only once):
-% \\usetikzlibrary{{shapes.geometric, shadows}}
-% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
-
 \\begin{{tikzpicture}}
     \\node [
         {final_shape}, 
