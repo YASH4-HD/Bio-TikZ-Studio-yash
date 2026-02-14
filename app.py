@@ -96,22 +96,27 @@ with tab1:
 
         shadow_code = ", drop shadow" if show_shadow else ""
 
-               # --- THE FINAL PERFECTED GENERATED SNIPPET ---
+                       # Clean the color hex for LaTeX
+        hex_color = cell_color.replace('#', '')
+
+        # --- THE FINAL PERFECTED GENERATED SNIPPET ---
         tikz_code = f"""
-% Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
-% Add this to your preamble: \\definecolor{{{cell_color.replace('#', '')}}}{{HTML}}{{{cell_color.replace('#', '')}}}
+% Add these to your preamble (only once):
+% \\usetikzlibrary{{shapes.geometric, shadows}}
+% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
 
 \\begin{{tikzpicture}}
     \\node [
         {final_shape}, 
         draw, 
-        fill={cell_color.replace('#', '')}!20, 
+        fill={hex_color}!20, 
         line width={line_thickness}, 
         {min_size},
         align=center{shadow_code}
     ] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
 """
+
 
 
         st.subheader("Copy this code to Overleaf:")
