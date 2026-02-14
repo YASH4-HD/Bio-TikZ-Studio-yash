@@ -282,20 +282,20 @@ with main_tabs[1]:
         preset=preset,
     )
     # --- FULL DOCUMENT GENERATION ---
-        if full_doc_mode:
-            final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
-    \\usetikzlibrary{{shapes.geometric, shadows}}
-    \\usepackage{{xcolor}}
-    
-    \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
-    
-    \\begin{{document}}
-    
-    {tikz_snippet}
-    
-    \\end{{document}}"""
-        else:
-            final_output = f"% Add this to your preamble once:\n% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}\n\n" + tikz_snippet
+    if full_doc_mode:
+        final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
+\\usetikzlibrary{{shapes.geometric, shadows}}
+\\usepackage{{xcolor}}
+
+\\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}
+
+\\begin{{document}}
+
+{tikz_snippet}
+
+\\end{{document}}"""
+    else:
+        final_output = f"% Add this to your preamble once:\n% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}\n\n" + tikz_snippet
 
     st.subheader("Generated Node Code")
     st.code(tikz_code, language="latex")
