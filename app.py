@@ -96,7 +96,7 @@ def generate_cell_tikz(
         "circle": "circle",
         "ellipse": "ellipse",
         "rectangle": "rectangle",
-        "double circle": "circle, double",
+        "double circle": "circle, double, double distance=2pt",
     }
     final_shape = shape_map.get(cell_shape, "circle")
 
@@ -161,7 +161,7 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
 def build_full_tikz_document(tikz_body: str) -> str:
     return rf"""\documentclass[tikz,border=5pt]{{standalone}}
 \usepackage[svgnames]{{xcolor}}
-\usetikzlibrary{{shadows,arrows.meta,positioning}}
+\usetikzlibrary{{shadows,arrows.meta,positioning,shapes.geometric}}
 \begin{{document}}
 {tikz_body}
 \end{{document}}"""
@@ -180,7 +180,6 @@ def grayscale_score(img: Image.Image) -> float:
 
 
 def color_blind_preview(img: Image.Image) -> Image.Image:
-    # Lightweight deuteranopia-like approximation by reducing green channel influence.
     r, g, b = img.split()
     g_reduced = ImageEnhance.Brightness(g).enhance(0.35)
     return Image.merge("RGB", (r, g_reduced, b))
@@ -289,8 +288,6 @@ with main_tabs[0]:
 with main_tabs[1]:
     st.header("TikZ Generator + Template Gallery + Legend Generator")
     st.write("Generate clean code for biological nodes to paste into Overleaf.")
-    
-    
 
     template_choice = st.selectbox("Template Gallery", ["Custom Node"] + list(TIKZ_TEMPLATES.keys()))
 
@@ -319,8 +316,7 @@ with main_tabs[1]:
     )
     full_doc_mode = st.toggle("Generate full .tex document", value=False)
     current_hex = cell_color.replace("#", "")
-        # 1. Clean the tikz_code to remove any preamble hints if they exist
-    # This ensures the document doesn't have "Add this to your preamble" inside it.
+    
     clean_tikz = tikz_code.split("\n\n")[-1] if "% Add this" in tikz_code else tikz_code
 
     if full_doc_mode:
@@ -336,7 +332,6 @@ with main_tabs[1]:
 
 \\end{{document}}"""
     else:
-        # For the snippet mode, we provide the color definition as a helpful comment
         final_output = f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}\n\n{clean_tikz}"
 
     st.subheader("Generated Node Code")
@@ -347,6 +342,7 @@ with main_tabs[1]:
         file_name="cell_diagram.tex",
         mime="text/x-tex",
      )
+    
     st.markdown("### Smart Legend Generator")
     n_items = st.slider("Number of legend items", 2, 8, 4)
     legend_items = []
@@ -468,7 +464,7 @@ with main_tabs[4]:
     st.subheader("Overleaf Helper Pack")
     overleaf_preamble = r"""% Add to preamble once
 \usepackage{tikz}
-\usetikzlibrary{shadows,arrows.meta,positioning}
+\usetikzlibrary{shadows,arrows.meta,positioning,shapes.geometric}
 """
     overleaf_pack = build_zip(
         [
