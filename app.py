@@ -8,12 +8,7 @@ import fitz  # PyMuPDF
 import streamlit as st
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageOps
 
-# 1. Disable safety limit immediately
-Image.MAX_IMAGE_PIXELS = None
-
-# 2. Set config before any other st commands
 st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
-
 
 OUTPUT_PROFILES = {
     "Custom": {"dpi_scale": 4, "auto_crop": True, "line_thickness": "thick"},
@@ -163,7 +158,6 @@ def generate_tikz_code(
 
 def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
     lines = [r"\begin{tikzpicture}"]
-    lines.append(r"\node at (0.3, 0.8) {\textbf{Legend Index}};")
     y = 0.0
     for item in legend_items:
         color = item["color"].replace("#", "")
@@ -463,7 +457,6 @@ with main_tabs[2]:
 
     if uploaded_image is not None:
         base_img = Image.open(uploaded_image).convert("RGB")
-        base_img = base_img.resize((1000, 1000))
         gray_img = ImageOps.grayscale(base_img)
         cb_img = color_blind_preview(base_img)
 
@@ -519,24 +512,10 @@ with main_tabs[3]:
 
         add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
 
-       add_labels = st.checkbox("Add panel labels (A, B, C...)", value=True)
-
-        # --- REPLACE LINE 522 WITH THIS START ---
-        images = []
-        for f in panel_files:
-            img = Image.open(f).convert("RGB")
-            # Resize to 800px width while maintaining aspect ratio for the panel
-            aspect_ratio = img.height / img.width
-            new_height = int(800 * aspect_ratio)
-            img = img.resize((800, new_height))
-            images.append(img)
-        # --- REPLACE LINE 522 WITH THIS END ---
-
+        images = [Image.open(f).convert("RGB") for f in panel_files]
         composed = compose_panel(
             images=images,
             columns=columns,
-            # ... the rest of your code ...
-
             spacing=spacing,
             bg_color=bg_color,
             add_labels=add_labels,
