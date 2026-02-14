@@ -52,6 +52,7 @@ TIKZ_TEMPLATES = {
 
 
 def convert_pdf_page_to_image(page: fitz.Page, dpi_scale: int, auto_crop: bool) -> Image.Image:
+    Image.MAX_IMAGE_PIXELS = None
     mat = fitz.Matrix(dpi_scale, dpi_scale)
     pix = page.get_pixmap(matrix=mat, alpha=False)
     img = Image.open(io.BytesIO(pix.tobytes("png"))).convert("RGB")
