@@ -105,7 +105,7 @@ def generate_tikz_code(
 \\node [
     {final_shape}, 
     draw, 
-    fill={hex_color}!20, 
+    fill={{[HTML]{{{hex_color}}}!20}}, 
     {line_thickness},          
     {min_size},
     inner sep=5pt,
@@ -124,7 +124,7 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         lines.append(
             f"\\node[{shape}, draw, fill={color}!25, minimum size=0.45cm] at (0,{y}) {{}};"
         )
-        lines.append(f"\\node[anchor=west] at (0.6,{y}) {{{label}}};")
+        lines.append(f"\\node[{shape}, draw, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};")
         y -= 0.8
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
