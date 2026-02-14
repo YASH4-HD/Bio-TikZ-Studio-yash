@@ -243,7 +243,7 @@ with main_tabs[0]:
     default_profile = OUTPUT_PROFILES[preset]
 
     c1, c2, c3 = st.columns(3)
-    with c1:
+with c1:
     # 1. Update slider to float for finer control
     dpi_scale = st.slider("Resolution Scale (1.0 = 72 DPI)", 1.0, 12.0, float(default_profile["dpi_scale"]), step=0.5)
     
