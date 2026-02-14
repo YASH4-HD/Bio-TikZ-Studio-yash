@@ -100,6 +100,7 @@ with tab1:
         hex_color = cell_color.replace('#', '')
 
         # --- THE FINAL PERFECTED GENERATED SNIPPET ---
+        # --- THE CLEAN VERSION ---
         tikz_code = f"""
 \\begin{{tikzpicture}}
     \\node [
@@ -108,10 +109,8 @@ with tab1:
         fill={hex_color}!20, 
         line width={line_thickness}, 
         {min_size},
-                # --- THE FIX ---
-        align=center{shadow_code},  # Added a comma here
+        align=center{shadow_code},
     ] (mycell) at (0,0) {{{cell_label}}};
-
 \\end{{tikzpicture}}
 """
 
