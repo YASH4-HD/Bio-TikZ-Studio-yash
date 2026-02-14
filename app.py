@@ -108,8 +108,10 @@ with tab1:
         fill={hex_color}!20, 
         line width={line_thickness}, 
         {min_size},
-        align=center{shadow_code}
+                # --- THE FIX ---
+        align=center{shadow_code},  # Added a comma here
     ] (mycell) at (0,0) {{{cell_label}}};
+
 \\end{{tikzpicture}}
 """
 
