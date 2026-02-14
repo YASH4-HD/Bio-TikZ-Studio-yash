@@ -319,22 +319,26 @@ with main_tabs[1]:
     )
     full_doc_mode = st.toggle("Generate full .tex document", value=False)
     current_hex = cell_color.replace("#", "")
-    tikz_body = tikz_code.split("\n\n", 1)[1] if tikz_code.startswith("% Add this to your preamble:") else tikz_code
+        # 1. Clean the tikz_code to remove any preamble hints if they exist
+    # This ensures the document doesn't have "Add this to your preamble" inside it.
+    clean_tikz = tikz_code.split("\n\n")[-1] if "% Add this" in tikz_code else tikz_code
+
     if full_doc_mode:
         final_output = f"""\\documentclass[tikz,border=10pt]{{standalone}}
 \\usetikzlibrary{{shapes.geometric, shadows}}
 \\usepackage{{xcolor}}
 
-
 \\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}
 
 \\begin{{document}}
 
-{tikz_code}
+{clean_tikz}
 
 \\end{{document}}"""
     else:
-        final_output = tikz_code
+        # For the snippet mode, we provide the color definition as a helpful comment
+        final_output = f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}\n\n{clean_tikz}"
+
     st.subheader("Generated Node Code")
     st.code(final_output, language="latex")
     st.download_button(
