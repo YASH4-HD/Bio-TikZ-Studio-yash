@@ -161,11 +161,12 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
 def build_full_tikz_document(tikz_body: str) -> str:
     return rf"""\documentclass[tikz,border=5pt]{{standalone}}
 \usepackage[svgnames]{{xcolor}}
-% Essential libraries for biological and AI-generated diagrams
+% Libraries required for biological curves and positioning
 \usetikzlibrary{{shadows,arrows.meta,positioning,shapes.geometric,calc,decorations.pathmorphing}}
 \begin{{document}}
 {tikz_body}
 \end{{document}}"""
+
 
 
 def grayscale_score(img: Image.Image) -> float:
