@@ -96,18 +96,23 @@ with tab1:
 
         shadow_code = ", drop shadow" if show_shadow else ""
 
-        # --- THE GENERATED SNIPPET ---
-        # Using triple braces {{{ }}} to ensure LaTeX gets { } and Python gets the variable
+                # --- THE PERFECTED GENERATED SNIPPET ---
         tikz_code = f"""
 % Add this to your preamble: \\usetikzlibrary{{shapes.geometric, shadows}}
+% Add this to your preamble: \\definecolor{{{cell_color.replace('#', '')}}}{{HTML}}{{{cell_color.replace('#', '')}}}
 
 \\begin{{tikzpicture}}
-    \\node[{final_shape}, draw, fill={cell_color.replace('#', '')}!20, 
-          line width={line_thickness}, 
-          {min_size},
-          align=center{shadow_code}] (mycell) at (0,0) {{{cell_label}}};
+    \\node [
+        {final_shape}, 
+        draw, 
+        fill={cell_color.replace('#', '')}!20, 
+        line width={line_thickness}, 
+        {min_size},
+        align=center{shadow_code}
+    ] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
 """
+
 
         st.subheader("Copy this code to Overleaf:")
         st.code(tikz_code, language="latex")
