@@ -457,6 +457,7 @@ with main_tabs[2]:
     uploaded_image = st.file_uploader("Upload PNG/JPG for accessibility check", type=["png", "jpg", "jpeg"])
 
     if uploaded_image is not None:
+        Image.MAX_IMAGE_PIXELS = None
         base_img = Image.open(uploaded_image).convert("RGB")
         gray_img = ImageOps.grayscale(base_img)
         cb_img = color_blind_preview(base_img)
