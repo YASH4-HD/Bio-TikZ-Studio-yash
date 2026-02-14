@@ -163,13 +163,19 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         color = item["color"].replace("#", "")
         label = item["label"]
         shape = item["shape"]
+        # NEW: Get the line style from the item
+        l_style = item.get("style", "solid") 
+        
+        # Draw the shape icon
         lines.append(
-            f"\node[{shape}, draw, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};"
+            f"\\node[{shape}, draw, {l_style}, fill={{[HTML]{{{color}}}!25}}, minimum size=0.45cm] at (0,{y}) {{}};"
         )
-        lines.append(f"\node[anchor=west] at (0.6,{y}) {{{label}}};")
+        # Draw the text label
+        lines.append(f"\\node[anchor=west] at (0.6,{y}) {{{label}}};")
         y -= 0.8
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
+
 
 def build_full_tikz_document(tikz_body: str) -> str:
     return rf"""\documentclass[tikz,border=10pt]{{standalone}}
