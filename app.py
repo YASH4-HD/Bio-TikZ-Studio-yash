@@ -97,17 +97,20 @@ def generate_tikz_code(
 
     hex_color = cell_color.replace("#", "")
     shadow_code = ", drop shadow" if show_shadow else ""
+# 1. Prepare the label (handles \n correctly)
+        label_to_print = cell_label.replace('\\n', '\\\\').replace('\n', '\\\\')
 
-    return f"""\\begin{{tikzpicture}}
+        # 2. Return the formatted TikZ code
+        return f"""\\begin{{tikzpicture}}
     \\node [
-        {final_shape},
-        draw,
-        fill={hex_color}!20,
-        {line_thickness},
+        {final_shape}, 
+        draw, 
+        fill={hex_color}!20, 
+        {line_thickness},          
         {min_size},
-        inner sep=5pt,
+        inner_sep=5pt,
         align=center{shadow_code}
-    ] (mycell) at (0,0) {{{cell_label.replace('\\n', '\\\\')}}};
+    ] (mycell) at (0,0) {{{label_to_print}}};
 \\end{{tikzpicture}}"""
 
 
