@@ -295,7 +295,8 @@ with main_tabs[1]:
 
 \\end{{document}}"""
     else:
-        final_output = f"% Add this to your preamble once:\n% \\definecolor{{{hex_color}}}{{HTML}}{{{hex_color}}}\n\n" + tikz_code
+        clean_hex = cell_color.replace("#", "")
+        final_output = f"% Add this to your preamble once:\n\\definecolor{{mycolor}}{{HTML}}{{{clean_hex}}}\n\n" + tikz_code
 
     st.subheader("Generated Node Code")
     st.code(tikz_code, language="latex")
