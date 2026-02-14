@@ -269,7 +269,7 @@ with main_tabs[0]:
 
     if uploaded_pdfs:
         zip_entries: list[tuple[str, bytes]] = []
-        st.subheader("Processed Pages")
+        st.subheader(f"Processed Pages (@ {calculated_dpi} DPI)")
 
         for pdf in uploaded_pdfs:
             pdf_images = convert_pdf_bytes_to_images(pdf.read(), dpi_scale=dpi_scale, auto_crop=auto_crop)
