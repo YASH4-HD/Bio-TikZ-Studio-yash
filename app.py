@@ -163,7 +163,7 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         color = item["color"].replace("#", "")
         label = item["label"]
         shape = item["shape"]
-        style = item["style"]
+        style = item.get("style", "solid") # This uses "solid" if "style" is missing
         
         # Draw the shape icon with clean rounded coordinates
         lines.append(
