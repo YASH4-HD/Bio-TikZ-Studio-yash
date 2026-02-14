@@ -118,7 +118,7 @@ with tab1:
         st.code(tikz_code, language="latex")
         
         st.info("💡 Pro-tip: After pasting in Overleaf, use Tab 1 to convert your PDF to a High-Res PNG!")
-        st.info("💡 Pro-tip: Copy the % lines at the top into your Overleaf Preamble only once. For every new cell you create, just copy the \begin{tikzpicture} block!")
+        st.info("💡 Pro-tip: Copy the % lines at the top into your Overleaf Preamble only once. For every new cell you create, just copy the \ begin{tikzpicture} block!")
 
 st.markdown("---")
 st.caption("Developed by Yashwant Nama | PhD Research Portfolio Project")
