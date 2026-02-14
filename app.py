@@ -103,15 +103,16 @@ with tab1:
         # but the comma comes BEFORE the words, not after.
         shadow_part = ", drop shadow" if show_shadow else ""
 
+       # --- THE FINAL PERFECTED CODE ---
         tikz_code = f"""
 \\begin{{tikzpicture}}
     \\node [
         {final_shape}, 
         draw, 
         fill={hex_color}!20, 
-        line width={line_thickness}, 
+        {line_thickness},          
         {min_size},
-        align=center{shadow_part}
+        align=center{shadow_code}
     ] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
 """
