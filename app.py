@@ -278,7 +278,7 @@ with main_tabs[0]:
 
             for page_idx, page_img in enumerate(pdf_images, start=1):
                 st.image(page_img, caption=f"{pdf_stem} | Page {page_idx}", use_container_width=True)
-                filename = f"{pdf_stem}_DPI{dpi_scale * 72}_Page{page_idx}.png"
+                filename = f"{pdf_stem}_{calculated_dpi}DPI_Page{page_idx}.png"
                 png_bytes = image_to_png_bytes(page_img)
                 st.download_button(
                     label=f"Download {filename}",
