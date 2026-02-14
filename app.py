@@ -287,6 +287,8 @@ with main_tabs[1]:
         show_shadow=show_shadow,
         preset=preset,
     )
+    full_doc_mode = st.toggle("Generate full .tex document", value=False)
+    final_output = build_full_tikz_document(tikz_code) if full_doc_mode else tikz_code
     # --- FULL DOCUMENT GENERATION ---
     current_hex = cell_color.replace("#", "")
     if full_doc_mode:
@@ -305,6 +307,13 @@ with main_tabs[1]:
         
         final_output = f"% Add this to your preamble:\n\\definecolor{{mycolor}}{{HTML}}{{{current_hex}}}\n\n" + tikz_code
     st.subheader("Generated Node Code")
+    st.code(final_output, language="latex")
+    st.download_button(
+        label="Download .tex file",
+        data=final_output,
+        file_name="cell_diagram.tex",
+        mime="text/x-tex",
+     )
     st.code(tikz_code, language="latex")
 
     st.markdown("### Smart Legend Generator")
