@@ -99,8 +99,10 @@ with tab1:
                        # Clean the color hex for LaTeX
         hex_color = cell_color.replace('#', '')
 
-        # --- THE FINAL PERFECTED GENERATED SNIPPET ---
-        # --- THE CLEAN VERSION ---
+                # Ensure shadow_code starts with a comma if it exists
+        # but the comma comes BEFORE the words, not after.
+        shadow_part = ", drop shadow" if show_shadow else ""
+
         tikz_code = f"""
 \\begin{{tikzpicture}}
     \\node [
@@ -109,10 +111,11 @@ with tab1:
         fill={hex_color}!20, 
         line width={line_thickness}, 
         {min_size},
-        align=center{shadow_code},
+        align=center{shadow_part}
     ] (mycell) at (0,0) {{{cell_label}}};
 \\end{{tikzpicture}}
 """
+
 
 
 
