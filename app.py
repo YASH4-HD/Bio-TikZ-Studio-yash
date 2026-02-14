@@ -7,7 +7,7 @@ from pathlib import Path
 import fitz  # PyMuPDF
 import streamlit as st
 from PIL import Image, ImageChops, ImageDraw, ImageEnhance, ImageOps
-from PIL import Image
+from PIL import Image, ImageOps
 Image.MAX_IMAGE_PIXELS = None
 st.set_page_config(page_title="Bio-TikZ Studio", page_icon="🧬", layout="wide")
 
