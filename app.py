@@ -563,7 +563,7 @@ with main_tabs[4]:
             ("README_Overleaf.md", b"Import snippets from this pack into Overleaf."),
             ("preamble_snippet.tex", overleaf_preamble.encode("utf-8")),
             ("sample_node.tex", generate_tikz_code("Macrophage", "#e74c3c", "circle", "thick", True, "Standard Cell").encode("utf-8")),
-            ("sample_legend.tex", generate_legend_tikz([{"label": "Cell", "color": "#e74c3c", "shape": "circle"}]).encode("utf-8")),
+            ("sample_legend.tex", generate_legend_tikz([{"label": "Cell", "color": "#e74c3c", "shape": "circle", "style": "solid"}]).encode("utf-8")),
         ]
     )
     st.download_button(
