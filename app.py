@@ -128,7 +128,13 @@ def generate_legend_tikz(legend_items: list[dict[str, str]]) -> str:
         y -= 0.8
     lines.append(r"\end{tikzpicture}")
     return "\n".join(lines)
-
+def build_full_tikz_document(tikz_body: str) -> str:
+    return rf"""\documentclass[tikz,border=5pt]{{standalone}}
+\usepackage[svgnames]{{xcolor}}
+\usetikzlibrary{{shadows,arrows.meta,positioning}}
+\begin{{document}}
+{tikz_body}
+\end{{document}}"""
 
 def grayscale_score(img: Image.Image) -> float:
     gray = ImageOps.grayscale(img)
