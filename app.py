@@ -106,7 +106,7 @@ def generate_tikz_code(
         {line_thickness},
         {min_size},
         align=center{shadow_code}
-    ] (mycell) at (0,0) {{{cell_label}}};
+    ] (mycell) at (0,0) {{{cell_label.replace('\\n', '\\\\')}}};
 \\end{{tikzpicture}}"""
 
 
